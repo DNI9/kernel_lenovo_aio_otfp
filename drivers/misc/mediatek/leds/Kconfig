@@ -6,6 +6,12 @@ config MTK_LEDS
 	  If you want to use MediaTek(R) LEDs support, say Y or M here.
 	  If unsure, say N.
 
+config MTK_CUST_LEDS
+	tristate "LED Notification"
+        default n
+	---help---
+	  Say Y here to get LED notications other than VIBE based ROMs.
+
 config LIGHTNESS_MAPPING_VALUE
 	int "LIGHTNESS_MAPPING_VALUE"
 	default 255
