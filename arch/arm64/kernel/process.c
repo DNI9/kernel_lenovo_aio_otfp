@@ -104,6 +104,9 @@ static void default_idle(void)
 		cpu_do_idle();
 	local_irq_enable();
 }
+void (*pm_idle)(void) = default_idle;
+EXPORT_SYMBOL(pm_idle);
+
 
 void arch_cpu_idle_prepare(void)
 {
