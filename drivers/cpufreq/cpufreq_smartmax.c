@@ -15,6 +15,7 @@
  *  Copyright (C)  2001 Russell King
  *            (C)  2003 Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>.
  *                      Jun Nakajima <jun.nakajima@intel.com>
+ *            (C)  2014 LoungeKatt <twistedumbrella@gmail.com>
  *
  * smartassV2:
  * Author: Erasmux
@@ -33,8 +34,8 @@
 #include <linux/timer.h>
 #include <linux/workqueue.h>
 #include <linux/moduleparam.h>
+#include <linux/rwsem.h>
 #include <linux/jiffies.h>
-#include <linux/earlysuspend.h>
 #include <linux/input.h>
 #include <linux/kthread.h>
 #include <linux/slab.h>
@@ -52,7 +53,7 @@
  * lowering the frequency towards the ideal frequency is faster than below it.
  */
 
-#define GOV_IDLE_FREQ 598000
+#define GOV_IDLE_FREQ 468000
 
 #define DEFAULT_SUSPEND_IDEAL_FREQ GOV_IDLE_FREQ
 static unsigned int suspend_ideal_freq;
@@ -65,7 +66,7 @@ static unsigned int awake_ideal_freq;
  * Zero disables and causes to always jump straight to max frequency.
  * When below the ideal freqeuncy we always ramp up to the ideal freq.
  */
-#define DEFAULT_RAMP_UP_STEP 300000
+#define DEFAULT_RAMP_UP_STEP 302400
 static unsigned int ramp_up_step;
 
 /*
@@ -73,19 +74,19 @@ static unsigned int ramp_up_step;
  * Zero disables and will calculate ramp down according to load heuristic.
  * When above the ideal freqeuncy we always ramp down to the ideal freq.
  */
-#define DEFAULT_RAMP_DOWN_STEP 150000
+#define DEFAULT_RAMP_DOWN_STEP 200000
 static unsigned int ramp_down_step;
 
 /*
  * CPU freq will be increased if measured load > max_cpu_load;
  */
-#define DEFAULT_MAX_CPU_LOAD 85
+#define DEFAULT_MAX_CPU_LOAD 80
 static unsigned int max_cpu_load;
 
 /*
  * CPU freq will be decreased if measured load < min_cpu_load;
  */
-#define DEFAULT_MIN_CPU_LOAD 45
+#define DEFAULT_MIN_CPU_LOAD 50
 static unsigned int min_cpu_load;
 
 /*
@@ -110,7 +111,7 @@ static unsigned int sampling_rate;
 #define DEFAULT_INPUT_BOOST_DURATION 50000000
 static unsigned int input_boost_duration;
 
-static unsigned int touch_poke_freq = 747500;
+static unsigned int touch_poke_freq = 800000;
 static bool touch_poke = true;
 
 /*
@@ -122,7 +123,7 @@ static bool ramp_up_during_boost = true;
  * external boost interface - boost if duration is written
  * to sysfs for boost_duration
  */
-static unsigned int boost_freq = 1300000;
+static unsigned int boost_freq = 800000;
 static bool boost = true;
 
 /* in nsecs */
@@ -136,32 +137,6 @@ static unsigned int io_is_busy;
 static unsigned int ignore_nice;
 
 /*************** End of tunables ***************/
-static DEFINE_PER_CPU(int, cpufreq_policy_cpu);
-static DEFINE_PER_CPU(struct rw_semaphore, cpu_policy_rwsem);
-
-#define lock_policy_rwsem(mode, cpu)					\
-static int lock_policy_rwsem_##mode(int cpu)				\
-{									\
-	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);		\
-	BUG_ON(policy_cpu == -1);					\
-	down_##mode(&per_cpu(cpu_policy_rwsem, policy_cpu));		\
-									\
-	return 0;							\
-}
-
-lock_policy_rwsem(read, cpu);
-lock_policy_rwsem(write, cpu);
-
-#define unlock_policy_rwsem(mode, cpu)					\
-static void unlock_policy_rwsem_##mode(int cpu)				\
-{									\
-	int policy_cpu = per_cpu(cpufreq_policy_cpu, cpu);		\
-	BUG_ON(policy_cpu == -1);					\
-	up_##mode(&per_cpu(cpu_policy_rwsem, policy_cpu));		\
-}
-
-unlock_policy_rwsem(read, cpu);
-unlock_policy_rwsem(write, cpu);
 
 static unsigned int dbs_enable; /* number of CPUs using this policy */
 
@@ -179,6 +154,7 @@ struct smartmax_info_s {
 	unsigned int cur_cpu_load;
 	unsigned int old_freq;
 	int ramp_dir;
+    struct rw_semaphore enable_sem;
 	bool enable;
 	unsigned int ideal_speed;
 	unsigned int cpu;
@@ -247,6 +223,37 @@ struct cpufreq_governor cpufreq_gov_smartmax = { .name = "smartmax", .governor =
 		cpufreq_governor_smartmax, .max_transition_latency = 9000000, .owner =
 		THIS_MODULE , };
 
+//static inline cputime64_t get_cpu_idle_time_jiffy(unsigned int cpu,
+//		cputime64_t *wall) {
+//	u64 idle_time;
+//	u64 cur_wall_time;
+//	u64 busy_time;
+//
+//	cur_wall_time = jiffies64_to_cputime64(get_jiffies_64());
+//
+//	busy_time  = kcpustat_cpu(cpu).cpustat[CPUTIME_USER];
+//	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_SYSTEM];
+//	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_IRQ];
+//	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_SOFTIRQ];
+//	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_STEAL];
+//	busy_time += kcpustat_cpu(cpu).cpustat[CPUTIME_NICE];
+//
+//	idle_time = cur_wall_time - busy_time;
+//	if (wall)
+//		*wall = jiffies_to_usecs(cur_wall_time);
+//
+//	return jiffies_to_usecs(idle_time);
+//}
+//
+//static inline cputime64_t get_cpu_idle_time(unsigned int cpu, cputime64_t *wall) {
+//	u64 idle_time = get_cpu_idle_time_us(cpu, wall);
+//
+//	if (idle_time == -1ULL)
+//		return get_cpu_idle_time_jiffy(cpu, wall);
+//
+//	return idle_time;
+//}
+
 static inline cputime64_t get_cpu_iowait_time(unsigned int cpu,
 		cputime64_t *wall) {
 	u64 iowait_time = get_cpu_iowait_time_us(cpu, wall);
@@ -298,7 +305,7 @@ static inline unsigned int get_timer_delay(void) {
 static inline void dbs_timer_init(struct smartmax_info_s *this_smartmax) {
 	int delay = get_timer_delay();
 
-	INIT_DELAYED_WORK(&this_smartmax->work, do_dbs_timer);
+	INIT_DEFERRABLE_WORK(&this_smartmax->work, do_dbs_timer);
 	schedule_delayed_work_on(this_smartmax->cpu, &this_smartmax->work, delay);
 }
 
@@ -996,9 +1003,9 @@ static int cpufreq_smartmax_boost_task(void *data) {
 		policy = this_smartmax->cur_policy;
 		if (!policy)
 			continue;
-
-		if (lock_policy_rwsem_write(0) < 0)
-			continue;
+        
+        if (!down_read_trylock(&this_smartmax->enable_sem))
+            break;
 
 		mutex_lock(&this_smartmax->timer_mutex);
 
@@ -1013,8 +1020,8 @@ static int cpufreq_smartmax_boost_task(void *data) {
 			this_smartmax->prev_cpu_idle = get_cpu_idle_time(0, &this_smartmax->prev_cpu_wall, io_is_busy);
 		}
 		mutex_unlock(&this_smartmax->timer_mutex);
-				
-		unlock_policy_rwsem_write(0);
+        
+        up_read(&this_smartmax->enable_sem);
 	}
 
 	return 0;
@@ -1035,25 +1042,16 @@ static void dbs_input_event(struct input_handle *handle, unsigned int type,
 	}
 }
 
-static int input_dev_filter(const char *input_dev_name)
-{
-	if (strstr(input_dev_name, "touchscreen") ||
-            /* Add all touch panel drivers for touch boost */
-            strstr(input_dev_name, "gt9xx") ||
-            strstr(input_dev_name, "synaptics_s3203") ||
-            strstr(input_dev_name, "FT5406") ||
-            strstr(input_dev_name, "synaptics_tpd_s3508") ||
-            strstr(input_dev_name, "MSG2133") ||
-            strstr(input_dev_name, "FT6x06") ||
-            strstr(input_dev_name, "mtk-tpd") ||
-            /* Add all touch panel drivers for touch boost */
-	    strstr(input_dev_name, "touch_dev") ||
-	    strstr(input_dev_name, "sec-touchscreen") ||
-	    strstr(input_dev_name, "keypad")) {
-		return 0;
+static int input_dev_filter(const char* input_dev_name) {
+	int ret = 0;
+	if (strstr(input_dev_name, "touchscreen")
+			|| strstr(input_dev_name, "-keypad")
+			|| strstr(input_dev_name, "-nav")
+			|| strstr(input_dev_name, "-oj")) {
 	} else {
-		return 1;
+		ret = 1;
 	}
+	return ret;
 }
 
 static int dbs_input_connect(struct input_handler *handler,
@@ -1258,6 +1256,7 @@ static int __init cpufreq_smartmax_init(void) {
 		this_smartmax->ramp_dir = 0;
 		this_smartmax->freq_change_time = 0;
 		this_smartmax->cur_cpu_load = 0;
+        init_rwsem(&this_smartmax->enable_sem);
 	}
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
@@ -1282,5 +1281,8 @@ static void __exit cpufreq_smartmax_exit(void) {
 module_exit(cpufreq_smartmax_exit);
 
 MODULE_AUTHOR("maxwen");
+MODULE_AUTHOR("LoungeKatt <twistedumbrella@gmail.com>");
 MODULE_DESCRIPTION("'cpufreq_smartmax' - A smart cpufreq governor");
 MODULE_LICENSE("GPL");
+
+
