@@ -96,7 +96,7 @@
  ***************************************************/
 #define mt_gpufreq_reg_write(val, addr)        mt_reg_sync_writel((val), ((void *)addr))
 
-#define OPPS_ARRAY_AND_SIZE(x)	(x), ARRAY_SIZE(x)
+#define OPPS_ARRAY_AND_SIZE(x)  (x), ARRAY_SIZE(x)
 
 /***************************
  * Operate Point Definition
@@ -158,21 +158,21 @@
 #define TAG     "[Power/gpufreq] "
 
 #define gpufreq_err(fmt, args...)       \
-	pr_err(TAG"[ERROR]"fmt, ##args)
+    pr_err(TAG"[ERROR]"fmt, ##args)
 #define gpufreq_warn(fmt, args...)      \
-	pr_warn(TAG"[WARNING]"fmt, ##args)
+    pr_warn(TAG"[WARNING]"fmt, ##args)
 #define gpufreq_info(fmt, args...)      \
-	pr_warn(TAG""fmt, ##args)
+    pr_warn(TAG""fmt, ##args)
 #define gpufreq_dbg(fmt, args...)       \
-	do {                                \
-		if (mt_gpufreq_debug)           \
-			gpufreq_info(fmt, ##args);     \
-	} while (0)
+    do {                                \
+        if (mt_gpufreq_debug)           \
+            gpufreq_info(fmt, ##args);     \
+    } while (0)
 #define gpufreq_ver(fmt, args...)       \
-	do {                                \
-		if (mt_gpufreq_debug)           \
-			pr_debug(TAG""fmt, ##args);    \
-	} while (0)
+    do {                                \
+        if (mt_gpufreq_debug)           \
+            pr_debug(TAG""fmt, ##args);    \
+    } while (0)
 
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
@@ -416,9 +416,9 @@ static unsigned int mt_gpufreq_get_dvfs_table_type(void)
     if (gpu_speed_bounding == 0) {
 #ifdef CONFIG_OF
         static const struct of_device_id gpu_ids[] = {
-        	{ .compatible = "arm,malit6xx" },
-        	{ .compatible = "arm,mali-midgard" },
-        	{ /* sentinel */ }
+            { .compatible = "arm,malit6xx" },
+            { .compatible = "arm,mali-midgard" },
+            { /* sentinel */ }
         };
         struct device_node *node;
         unsigned int gpu_speed = 0;
@@ -569,19 +569,19 @@ static const struct input_device_id mt_gpufreq_ids[] = {
 };
 
 static struct input_handler mt_gpufreq_input_handler = {
-    .event		= mt_gpufreq_input_event,
-    .connect	= mt_gpufreq_input_connect,
-    .disconnect	= mt_gpufreq_input_disconnect,
-    .name		= "gpufreq_ib",
-    .id_table	= mt_gpufreq_ids,
+    .event      = mt_gpufreq_input_event,
+    .connect    = mt_gpufreq_input_connect,
+    .disconnect = mt_gpufreq_input_disconnect,
+    .name       = "gpufreq_ib",
+    .id_table   = mt_gpufreq_ids,
 };
 #endif
 
 static void mt_gpufreq_power_calculation(unsigned int oppidx, unsigned int temp)
 {
-#define GPU_ACT_REF_POWER	    1596	/* mW  */
-#define GPU_ACT_REF_FREQ	    728000 /* KHz */
-#define GPU_ACT_REF_VOLT	    100000	/* mV x 100 */
+#define GPU_ACT_REF_POWER       1596    /* mW  */
+#define GPU_ACT_REF_FREQ        728000 /* KHz */
+#define GPU_ACT_REF_VOLT        100000  /* mV x 100 */
 
     unsigned int p_total = 0, p_dynamic = 0, p_leakage = 0, ref_freq = 0, ref_volt = 0;
 
@@ -746,9 +746,9 @@ unsigned int mt_gpufreq_voltage_enable_set(unsigned int enable)
     mt_gpufreq_volt_enable_state = enable;
 
 #if 1
-	delay = PMIC_VOLT_ON_OFF_DELAY_US;
+    delay = PMIC_VOLT_ON_OFF_DELAY_US;
 #else
-	delay = mt_gpufreq_calc_pmic_settle_time(0, g_cur_gpu_volt);
+    delay = mt_gpufreq_calc_pmic_settle_time(0, g_cur_gpu_volt);
 #endif
 
     gpufreq_dbg("@%s: enable = %x, delay = %d\n", __func__, enable, delay);
@@ -1084,20 +1084,20 @@ EXPORT_SYMBOL(mt_gpufreq_state_set);
 
 static unsigned int mt_gpufreq_dds_calc(unsigned int khz)
 {
-	unsigned int dds = 0;
+    unsigned int dds = 0;
 
 #ifdef MTK_TABLET_TURBO
-	dds = ((khz * 4 / 1000) * 8192) / 13;
+    dds = ((khz * 4 / 1000) * 8192) / 13;
 #else
-	if ((khz >= 250250) && (khz <= 747500))
-		dds = ((khz * 4 / 1000) * 8192) / 13;
-	else {
-		gpufreq_err("@%s: target khz(%d) out of range!\n", __func__, khz);
-		BUG();
-	}
+    if ((khz >= 250250) && (khz <= 747500))
+        dds = ((khz * 4 / 1000) * 8192) / 13;
+    else {
+        gpufreq_err("@%s: target khz(%d) out of range!\n", __func__, khz);
+        BUG();
+    }
 #endif
 
-	return dds;
+    return dds;
 }
 
 static void mt_gpufreq_clock_switch(unsigned int freq_new)
@@ -2758,34 +2758,34 @@ static ssize_t mt_gpufreq_input_boost_proc_write(struct file *file, const char _
 }
 #endif
 
-#define PROC_FOPS_RW(name)							\
-    static int mt_ ## name ## _proc_open(struct inode *inode, struct file *file)	\
-{									\
-    return single_open(file, mt_ ## name ## _proc_show, PDE_DATA(inode));	\
-}									\
-static const struct file_operations mt_ ## name ## _proc_fops = {		\
-    .owner          = THIS_MODULE,				\
-    .open           = mt_ ## name ## _proc_open,	\
-    .read           = seq_read,					\
-    .llseek         = seq_lseek,					\
-    .release        = single_release,				\
-    .write          = mt_ ## name ## _proc_write,				\
+#define PROC_FOPS_RW(name)                          \
+    static int mt_ ## name ## _proc_open(struct inode *inode, struct file *file)    \
+{                                   \
+    return single_open(file, mt_ ## name ## _proc_show, PDE_DATA(inode));   \
+}                                   \
+static const struct file_operations mt_ ## name ## _proc_fops = {       \
+    .owner          = THIS_MODULE,              \
+    .open           = mt_ ## name ## _proc_open,    \
+    .read           = seq_read,                 \
+    .llseek         = seq_lseek,                    \
+    .release        = single_release,               \
+    .write          = mt_ ## name ## _proc_write,               \
 }
 
-#define PROC_FOPS_RO(name)							\
-    static int mt_ ## name ## _proc_open(struct inode *inode, struct file *file)	\
-{									\
-    return single_open(file, mt_ ## name ## _proc_show, PDE_DATA(inode));	\
-}									\
-static const struct file_operations mt_ ## name ## _proc_fops = {		\
-    .owner          = THIS_MODULE,				\
-    .open           = mt_ ## name ## _proc_open,	\
-    .read           = seq_read,					\
-    .llseek         = seq_lseek,					\
-    .release        = single_release,				\
+#define PROC_FOPS_RO(name)                          \
+    static int mt_ ## name ## _proc_open(struct inode *inode, struct file *file)    \
+{                                   \
+    return single_open(file, mt_ ## name ## _proc_show, PDE_DATA(inode));   \
+}                                   \
+static const struct file_operations mt_ ## name ## _proc_fops = {       \
+    .owner          = THIS_MODULE,              \
+    .open           = mt_ ## name ## _proc_open,    \
+    .read           = seq_read,                 \
+    .llseek         = seq_lseek,                    \
+    .release        = single_release,               \
 }
 
-#define PROC_ENTRY(name)	{__stringify(name), &mt_ ## name ## _proc_fops}
+#define PROC_ENTRY(name)    {__stringify(name), &mt_ ## name ## _proc_fops}
 
 PROC_FOPS_RW(gpufreq_debug);
 PROC_FOPS_RW(gpufreq_limited_power);
@@ -2951,4 +2951,3 @@ module_exit(mt_gpufreq_exit);
 
 MODULE_DESCRIPTION("MediaTek GPU Frequency Scaling driver");
 MODULE_LICENSE("GPL");
-
