@@ -26,7 +26,7 @@
 #define FREQ_NEED_BURST(x)			(x < 600000 ? 1 : 0)
 #define MAX(x,y)				(x > y ? x : y)
 #define MIN(x,y)				(x < y ? x : y)
-#define TABLE_SIZE				8
+#define TABLE_SIZE				12
 #define TABLE_NUM				2
 
 static DEFINE_PER_CPU(struct ex_cpu_dbs_info_s, ex_cpu_dbs_info);
@@ -56,20 +56,28 @@ static unsigned int tblmap[TABLE_NUM][TABLE_SIZE] __read_mostly = {
 		1170000,
 		1287000,
 		1417000,
+		1495000,
 		1560000,
+		1612000,
 		1690000,
+		1794000,
+		1994000,
 	},
 
 	//table 1
 	{
-		468000,
+	    468000,
 		702000,
 		936000,
 		1170000,
 		1287000,
 		1417000,
+		1495000,
 		1560000,
+		1612000,
 		1690000,
+		1794000,
+		1994000,
 	},
 
 };
