@@ -24,9 +24,13 @@
 #include <linux/reboot.h>
 #include <linux/writeback.h>
 
-#define DYN_FSYNC_VERSION_MAJOR 2
-#define DYN_FSYNC_VERSION_MINOR 0
+#define DYN_FSYNC_VERSION_MAJOR 1
+#define DYN_FSYNC_VERSION_MINOR 5
 
+/*
+ * fsync_mutex protects dyn_fsync_active during early suspend / late resume
+ * transitions
+ */
 static DEFINE_MUTEX(fsync_mutex);
 
 bool early_suspend_active __read_mostly = false;
@@ -63,7 +67,7 @@ static ssize_t dyn_fsync_active_store(struct kobject *kobj,
 static ssize_t dyn_fsync_version_show(struct kobject *kobj,
 		struct kobj_attribute *attr, char *buf)
 {
-	return sprintf(buf, "version: %u.%u\n",
+	return sprintf(buf, "version: %u.%u by faux123\n",
 		DYN_FSYNC_VERSION_MAJOR,
 		DYN_FSYNC_VERSION_MINOR);
 }
@@ -99,16 +103,15 @@ static struct attribute_group dyn_fsync_active_attr_group =
 	};
 
 static struct kobject *dyn_fsync_kobj;
+
 extern void sync_filesystems(int wait);
 static void dyn_fsync_force_flush(void)
 {
-	/* flush all outstanding buffers */
-	wakeup_flusher_threads(0, WB_REASON_SYNC);
 	sync_filesystems(0);
 	sync_filesystems(1);
 }
 
-static void dyn_fsync_early_suspend(struct early_suspend *h)
+static void dyn_fsync_suspend(struct early_suspend *p)
 {
 	mutex_lock(&fsync_mutex);
 	if (dyn_fsync_active) {
@@ -118,7 +121,7 @@ static void dyn_fsync_early_suspend(struct early_suspend *h)
 	mutex_unlock(&fsync_mutex);
 }
 
-static void dyn_fsync_resume(struct early_suspend *h)
+static void dyn_fsync_resume(struct early_suspend *p)
 {
 	mutex_lock(&fsync_mutex);
 	early_suspend_active = false;
@@ -127,7 +130,7 @@ static void dyn_fsync_resume(struct early_suspend *h)
 
 static struct early_suspend dyn_fsync_early_suspend_handler = 
 	{
-		.suspend = dyn_fsync_early_suspend,
+		.suspend = dyn_fsync_suspend,
 		.resume = dyn_fsync_resume,
 	};
 
@@ -196,7 +199,11 @@ static void dyn_fsync_exit(void)
 	if (dyn_fsync_kobj != NULL)
 		kobject_put(dyn_fsync_kobj);
 }
-MODULE_AUTHOR("Paul Reioux <reioux@gmail.com>");
-MODULE_AUTHOR("Varun Chitre <varun.chitre15@gmail.com");
+
 module_init(dyn_fsync_init);
 module_exit(dyn_fsync_exit);
+
+MODULE_AUTHOR("Paul Reioux <reioux@gmail.com>");
+MODULE_DESCRIPTION("dynamic fsync - automatic fs sync optimizaition using"
+		"early_suspend driver!");
+MODULE_LICENSE("GPL v2");
