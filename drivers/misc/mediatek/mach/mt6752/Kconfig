@@ -1,0 +1,23 @@
+menu "MTK Support Overclock"
+
+config MT_CPUFREQ_OC
+	bool "CPU_OVERCLOCK"
+	default n
+	help
+	  Select this to Overclock MT6752 to 1.9 GHz
+
+config MT_GPUFREQ_OC
+	bool "GPU_OVERCLOCK"
+	default n
+	help
+	 Select this to Overclock Mali-T760 to 819 MHz
+
+config MORE_FREQ
+	bool "MORE_FREQUENCIES"
+	depends on CPU_OC
+	default n
+	help
+	  More frequencies for choice
+
+endmenu
+

@@ -55,7 +55,11 @@ obj-y += mt_pm_ldo.o
 #obj-$(CONFIG_MTK_CIRQ) += mt_cirq.o
 obj-y += mt_spm_mtcmos.o
 obj-y += mt_sleep.o
+ifeq ($(CONFIG_MT_CPUFREQ_OC),y)
+obj-y += mt_cpufreq_oc.o mt_cpu_ss.o
+else
 obj-y += mt_cpufreq.o mt_cpu_ss.o
+endif
 obj-y += mt_gpufreq.o
 ##obj-y += mt_emifreq.o
 #
