@@ -3442,7 +3442,7 @@ static int touch_event_handler(void *unused)
                 }
             #endif
                 GTP_DEBUG(" %d)(%d, %d)[%d]", id, input_x, input_y, input_w);
-            #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+           /* #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
                 if(dt2w_scr_suspended == false)
                 {
                 tpd_down( input_x, input_y, input_w, id);
@@ -3456,9 +3456,9 @@ static int touch_event_handler(void *unused)
 				{
                 tpd_down(input_x, input_y, input_w, id);
 				}
-				#else
+				#else*/
                 tpd_down(input_x, input_y, input_w, id);
-                #endif
+                //#endif
 
 /*lenovo-xw xuwen1 add code for tp button begin 2014-08-19, wangxf14 porting at 20140915 */
 		   #ifdef CONFIG_LENOVO_POWEROFF_CHARGING_UI
