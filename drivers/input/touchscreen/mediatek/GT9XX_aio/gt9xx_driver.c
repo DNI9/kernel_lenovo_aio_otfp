@@ -10,6 +10,14 @@
 #include <linux/sensors_io.h>
 #endif
 
+#ifdef CONFIG_POCKETMOD
+#include <linux/pocket_mod.h>
+#endif
+
+#ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+#include <linux/input/doubletap2wake.h>
+#endif
+
 #if GTP_SUPPORT_I2C_DMA
 #include <linux/dma-mapping.h>
 #endif
@@ -3372,9 +3380,21 @@ static int touch_event_handler(void *unused)
 		{
 			input_x =touch_key_point_maping_array[i].point_x;
 			input_y = touch_key_point_maping_array[i].point_y;
-			printk("button =%d %d",input_x,input_y);
-				   
-			tpd_down( input_x, input_y, 0, 0);
+#ifdef  CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+			// fix for lower button wakeup
+			if(dt2w_scr_suspended == false)
+				{
+				tpd_down( input_x, input_y, 0, 0);
+				}
+				// avoid button touches being recognized as digitizer presses
+				else if(touch_key_point_maping_array[i].point_y<1920) {
+					tpd_down( input_x, input_y, 0, 0);
+				}
+			#else
+				tpd_down( input_x, input_y, 0, 0);
+				printk("button =%d %d",input_x,input_y);
+#endif			
+			
 		}
 #else
       input_report_key(tpd->dev, touch_key_array[i], key_value & (0x01 << i));
@@ -3422,7 +3442,24 @@ static int touch_event_handler(void *unused)
                 }
             #endif
                 GTP_DEBUG(" %d)(%d, %d)[%d]", id, input_x, input_y, input_w);
+            #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
+                if(dt2w_scr_suspended == false)
+                {
+                tpd_down( input_x, input_y, input_w, id);
+                }
+                else
+			// fix doubletap to wake to be only active in the center of the screen
+				if((input_x>250)&&
+					(input_x<750)&&
+					(input_y<1500)&&
+					(input_y>350)) 
+				{
                 tpd_down(input_x, input_y, input_w, id);
+				}
+				#else
+                tpd_down(input_x, input_y, input_w, id);
+                #endif
+
 /*lenovo-xw xuwen1 add code for tp button begin 2014-08-19, wangxf14 porting at 20140915 */
 		   #ifdef CONFIG_LENOVO_POWEROFF_CHARGING_UI
 		   if(((input_x>LENOVO_CHARGING_DRAW_LEFT)&&(input_x<LENOVO_CHARGING_DRAW_RIGHT)) &&((input_y>LENOVO_CHARGING_DRAW_TOP) &&(input_y<LENOVO_CHARGING_DRAW_BOTTOM)) &&(ipo_flag ==0x1) &&(g_tp_poweron !=0x1))
