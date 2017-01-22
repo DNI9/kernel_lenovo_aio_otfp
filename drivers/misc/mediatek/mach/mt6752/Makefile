@@ -125,7 +125,11 @@ obj-y += mt_sleep.o
 obj-y += mt_idle.o
 obj-y += mt_clkbuf_ctl.o
 obj-y += mt_golden_setting.o
+ifeq ($(CONFIG_MT_CPUFREQ_OC),y)
+obj-y += mt_cpufreq_oc.o mt_cpu_ss.o
+else
 obj-y += mt_cpufreq.o mt_cpu_ss.o
+endif
 obj-y += mt_gpufreq.o
 # Module project related part
 obj-y += $(ARCH_MTK_PROJECT)/
