@@ -44,6 +44,11 @@
 #include <linux/wakelock.h>
 #include <linux/sched.h>
 
+#ifdef CONFIG_POCKETMOD
+#include <linux/pocket_mod.h>
+//static int epl2182_ps_enabled = 0;
+#endif
+
 #include <alsps.h>
 #undef CUSTOM_KERNEL_SENSORHUB
 #ifdef CUSTOM_KERNEL_SENSORHUB
@@ -2881,6 +2886,43 @@ static int __init epl2182_init(void)
 	alsps_driver_add(&epl2182_init_info);
 	return 0;
 }
+
+#ifdef CONFIG_POCKETMOD
+int epl2182_pocket_detection_check(void)
+{
+	int ps_val;
+	int als_val;
+	//int err = 0;
+	//int prox_value = -1;
+
+	struct epl2182_priv *obj = epl2182_obj;
+	
+	//if (!epl2182_ps_enabled) {
+		//ps_enable_nodata(1);
+	//}
+
+	if(obj == NULL)
+	{
+		APS_DBG("[epl2182] epl2182_obj is NULL!");
+		return 0;
+	}
+	else
+	{
+		elan_epl2182_psensor_enable(obj->client, 1);
+
+		msleep(50);
+
+		ps_val = gRawData.ps_raw;
+		als_val = gRawData.als_ch1_raw;
+
+		APS_DBG("[epl2182] %s als_val = %d, ps_val = %d\n", __func__, als_val, ps_val);
+
+		elan_epl2182_psensor_enable(obj->client, 0);
+
+		return (ps_val);
+	}
+}
+#endif
 /*----------------------------------------------------------------------------*/
 static void __exit epl2182_exit(void)
 {

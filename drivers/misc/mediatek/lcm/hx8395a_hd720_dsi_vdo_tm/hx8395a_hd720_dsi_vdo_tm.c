@@ -18,6 +18,9 @@
 #ifndef FPGA_EARLY_PORTING
 #include <cust_i2c.h>
 #endif
+#ifdef CONFIG_POCKETMOD
+#include <linux/pocket_mod.h>
+#endif
 //Lenovo-sw wuwl10 add 20141224 for esd recover backlight
 #ifndef BUILD_LK
 static unsigned int esd_last_backlight_level = 255;
@@ -942,6 +945,11 @@ static void lcm_suspend(void)
 	mt_set_gpio_dir(GPIO_LCD_BIAS_ENP_PIN, GPIO_DIR_OUT);
 	mt_set_gpio_out(GPIO_LCD_BIAS_ENP_PIN, GPIO_OUT_ZERO);
 	MDELAY(50);
+
+//needed for pocket mode
+#ifdef CONFIG_POCKETMOD
+        is_screen_on = 0;
+#endif
 }
 
 
@@ -949,6 +957,10 @@ static void lcm_suspend(void)
 static void lcm_resume(void)
 {
 	lcm_init();
+// needed for pocket mode
+#ifdef CONFIG_POCKETMOD
+	is_screen_on = 1;
+#endif
 }
 
 
