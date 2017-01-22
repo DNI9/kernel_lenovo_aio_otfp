@@ -34,6 +34,10 @@
 #include <linux/input/doubletap2wake.h>
 #include <linux/input/sweep2wake.h>
 
+#ifdef CONFIG_POCKETMOD
+#include <linux/pocket_mod.h>
+#endif
+ 
 /* uncomment since no touchscreen defines android touch, do that here */
 //#define ANDROID_TOUCH_DECLARED
 
@@ -239,6 +243,12 @@ static void detect_doubletap2wake(int x, int y, bool st)
 }
 
 static void dt2w_input_callback(struct work_struct *unused) {
+#ifdef CONFIG_POCKETMOD
+ 	if (device_is_pocketed()){
+ 		return;
+ 	}
+ 	else
+ #endif
 //avoid button presses being recognized as touches
 	if (touch_y < 1920) {
 	detect_doubletap2wake(touch_x, touch_y, true);

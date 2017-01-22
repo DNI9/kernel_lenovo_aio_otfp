@@ -32,6 +32,11 @@
 #include <linux/hrtimer.h>
 #include <linux/input/sweep2wake.h>
 
+#ifdef CONFIG_POCKETMOD
+#include <linux/pocket_mod.h>
+#endif
+
+
 #define WAKE_HOOKS_DEFINED
 
 #ifndef WAKE_HOOKS_DEFINED
@@ -347,6 +352,13 @@ static void detect_sweep2wake_h(int x, int y, bool st, bool wake)
 }
 
 static void s2w_input_callback(struct work_struct *unused) {
+
+#ifdef CONFIG_POCKETMOD
+	if (device_is_pocketed()){
+		return;
+	}
+	else
+#endif
 
 	detect_sweep2wake_h(touch_x, touch_y, true, s2w_scr_suspended);
 	if (s2w_scr_suspended)
