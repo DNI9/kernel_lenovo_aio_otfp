@@ -17,7 +17,8 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
- */
+ * Modified by: GSandeep96 (https://github.com/GSandeep96)- 2017-06-08
+*/
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -35,12 +36,12 @@
 int is_screen_on;
 
 #ifdef CONFIG_POCKETMOD
-unsigned pocket_mod_switch = 0;
+unsigned pocket_mod_switch = 1;
 #else
 unsigned pocket_mod_switch = 0;
 #endif
 
-static unsigned int pocket_mod_timeout = 600;
+static unsigned int pocket_mod_timeout = 100;
 static cputime64_t read_time_pre = 0;
 static int prev_res = 0;
 
@@ -48,7 +49,7 @@ static int (*sensor_check)(void) = NULL;
 
 int device_is_pocketed(void) {
 
-	/*int check_response;
+	int check_response;
 
 	if (!(pocket_mod_switch))
 		return 0;
@@ -76,7 +77,7 @@ int device_is_pocketed(void) {
 				return prev_res;
 			}
 		}
-	}*/
+	}
 
 	return 0;
 }
@@ -94,9 +95,8 @@ static ssize_t pocket_mod_set(struct device *dev,
 
 	sscanf(buf, "%u\n", &val);
 
-	// disable changeability for now
-	/*if ( ( val == 0 ) || ( val == 1 ) )
-		pocket_mod_switch = val;*/
+	if ( ( val == 0 ) || ( val == 1 ) )
+		pocket_mod_switch = val;
 
 	return size;
 }
