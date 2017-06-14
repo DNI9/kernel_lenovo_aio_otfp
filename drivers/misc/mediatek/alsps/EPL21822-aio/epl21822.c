@@ -10,6 +10,9 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
+
+ * Modified for Pocket Mod Implemention 
+   by: GSandeep96 (https://github.com/GSandeep96)
  *
  */
 
@@ -43,11 +46,6 @@
 #include <linux/earlysuspend.h>
 #include <linux/wakelock.h>
 #include <linux/sched.h>
-
-#ifdef CONFIG_POCKETMOD
-#include <linux/pocket_mod.h>
-//static int epl2182_ps_enabled = 0;
-#endif
 
 #include <alsps.h>
 #undef CUSTOM_KERNEL_SENSORHUB
@@ -332,7 +330,6 @@ static struct i2c_driver epl2182_i2c_driver =
 
 static struct epl2182_priv *epl2182_obj = NULL;
 static epl_raw_data	gRawData;
-
 static int alsps_init_flag =-1; // 0<==>OK -1 <==> fail
 
 static struct alsps_init_info epl2182_init_info = {
@@ -609,6 +606,7 @@ static int elan_epl2182_psensor_enable(struct epl2182_priv *epl_data, int enable
 				{
 					ps_report_interrupt_data(gRawData.ps_state);
 					APS_LOG("ps_report_interrupt_data gRawData.ps_state:%d, gRawData.ps_raw=%d \n ", gRawData.ps_state, gRawData.ps_raw);
+					
 				}
 				ps_resume_flag = false;
 			}
@@ -2887,42 +2885,48 @@ static int __init epl2182_init(void)
 	return 0;
 }
 
+
+ /*Modify for Pocket Mod Implemention 	2017-06-08 start
+   by: GSandeep96 (https://github.com/GSandeep96)*/
+
 #ifdef CONFIG_POCKETMOD
 int epl2182_pocket_detection_check(void)
 {
 	int ps_val;
 	int als_val;
-	//int err = 0;
-	//int prox_value = -1;
 
 	struct epl2182_priv *obj = epl2182_obj;
-	
-	//if (!epl2182_ps_enabled) {
-		//ps_enable_nodata(1);
-	//}
-
-	if(obj == NULL)
+	bool enable_ps = test_bit(CMC_BIT_PS, &obj->enable);
+	bool enable_als = test_bit(CMC_BIT_ALS, &obj->enable);
+	if(enable_ps == 0)
 	{
-		APS_DBG("[epl2182] epl2182_obj is NULL!");
-		return 0;
+		set_bit(CMC_BIT_PS, &obj->enable);
+		queue_delayed_work(obj->epl_wq, &polling_work,msecs_to_jiffies(5));
 	}
-	else
+	msleep(50);
+	ps_val = gRawData.ps_state;
+	APS_LOG("ioctl ps state value = %d \n", ps_val);
+
+	if(enable_als == 0)
 	{
-		elan_epl2182_psensor_enable(obj->client, 1);
-
-		msleep(50);
-
-		ps_val = gRawData.ps_raw;
-		als_val = gRawData.als_ch1_raw;
-
-		APS_DBG("[epl2182] %s als_val = %d, ps_val = %d\n", __func__, als_val, ps_val);
-
-		elan_epl2182_psensor_enable(obj->client, 0);
-
-		return (ps_val);
+		set_bit(CMC_BIT_ALS, &obj->enable);
+		queue_delayed_work(obj->epl_wq, &polling_work,msecs_to_jiffies(5));
 	}
+	als_val = gRawData.als_lux;
+	APS_LOG("ioctl get als data = %d\n", als_val);
+
+	APS_DBG("[epl2182] %s als_val = %d, ps_val = %d\n", __func__, als_val, ps_val);
+
+	clear_bit(CMC_BIT_PS, &obj->enable);
+	clear_bit(CMC_BIT_ALS, &obj->enable);
+	return (ps_val);
+
 }
 #endif
+
+ /*Modify for Pocket Mod Implemention 	2017-06-08 end
+   by: GSandeep96 (https://github.com/GSandeep96)*/
+
 /*----------------------------------------------------------------------------*/
 static void __exit epl2182_exit(void)
 {
