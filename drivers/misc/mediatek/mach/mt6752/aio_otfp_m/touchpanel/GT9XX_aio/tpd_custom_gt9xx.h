@@ -106,52 +106,43 @@ extern wait_queue_head_t bp_waiter;
 extern s32 gup_load_hotknot_system(void);
 
 extern unsigned char gtp_default_FW_fl[];
-//***************************PART1:ON/OFF define*******************************
-#define GTP_CUSTOM_CFG        0
-#define GTP_DRIVER_SEND_CFG   1       //driver send config to TP on intilization (for no config built in TP flash)
-#define GTP_HAVE_TOUCH_KEY    1
-#define GTP_POWER_CTRL_SLEEP 0 //  1       //turn off power on suspend
-#define GTP_AUTO_UPDATE    0 //   1      //update FW to TP FLASH
-#define GTP_CHANGE_X2Y        0				//set for se1
-#define GTP_HEADER_FW_UPDATE 0 //  1       // auto updated fw by gtp_default_FW in gt9xx_firmware.h, function together with GTP_AUTO_UDPATE
-#define GTP_AUTO_UPDATE_CFG  0 //  1       // auto update config by .cfg file, function together with GTP_AUTO_UPDATE
 
-#define GTP_SUPPORT_I2C_DMA   1       // if gt9xxf, better enable it if hardware platform supported
-#define GTP_COMPATIBLE_MODE   1       // compatible with GT9XXF
-#define GTP_CREATE_WR_NODE    1
-#define GTP_ESD_PROTECT       1       // esd protection with a cycle of 2 seconds
-#define GUP_USE_HEADER_FILE   0
-#define GTP_FW_DOWNLOAD       0       //update FW to TP SRAM
+//***************************PART1:ON/OFF define*******************************
+#define GTP_CUSTOM_CFG      0
+#define GTP_DRIVER_SEND_CFG 1   //driver send config to TP on intilization (for no config built in TP flash)
+#define GTP_HAVE_TOUCH_KEY  1
+#define GTP_POWER_CTRL_SLEEP    0 // 1  //turn off power on suspend
+#define GTP_AUTO_UPDATE     0 // 1  //update FW to TP FLASH
+#define GTP_CHANGE_X2Y      0   //set for se1
+#define GTP_HEADER_FW_UPDATE    0 // 1  // auto updated fw by gtp_default_FW in gt9xx_firmware.h, function together with GTP_AUTO_UDPATE
+#define GTP_AUTO_UPDATE_CFG 0 // 1  // auto update config by .cfg file, function together with GTP_AUTO_UPDATE
+
+#define GTP_SUPPORT_I2C_DMA 1   // if gt9xxf, better enable it if hardware platform supported
+#define GTP_COMPATIBLE_MODE 1   // compatible with GT9XXF
+#define GTP_CREATE_WR_NODE  1
+#define GTP_ESD_PROTECT     1   // esd protection with a cycle of 2 seconds
+#define GUP_USE_HEADER_FILE 0
+#define GTP_FW_DOWNLOAD     0       //update FW to TP SRAM
 //#define GTP_CHARGER_DETECT
 
-#define GTP_CONFIG_MIN_LENGTH       186
-#define GTP_CONFIG_MAX_LENGTH       240
-#define GTP_CHARGER_SWITCH    0       // charger plugin & plugout detect
-#define GTP_WITH_PEN          0       
-#define GTP_SLIDE_WAKEUP     1// 0 
-#define GTP_DBL_CLK_WAKEUP    0       // double-click wakup, function together with GTP_SLIDE_WAKEUP
-#define HOTKNOT_BLOCK_RW     0 // 1
+#define GTP_CONFIG_MIN_LENGTH   186
+#define GTP_CONFIG_MAX_LENGTH   240
+#define GTP_CHARGER_SWITCH  0   // charger plugin & plugout detect
+#define GTP_WITH_PEN        0       
+#define GTP_SLIDE_WAKEUP    1 // 0 
+#define GTP_DBL_CLK_WAKEUP  0   // double-click wakup, function together with GTP_SLIDE_WAKEUP
+#define HOTKNOT_BLOCK_RW    0 // 1
 
-/*lenovo-sw xuwen1 add for test begin*/
-#ifdef CONFIG_MD32_SUPPORT
-#undef CONFIG_MD32_SUPPORT
-#endif
-/*lenovo-sw xuwen1 add for test end*/
-
-#ifdef CONFIG_MD32_SUPPORT
-#define GTP_SCP_GESTURE_WAKEUP  1      // Gesture wakeup by SCP
-#else
-#define GTP_SCP_GESTURE_WAKEUP  0      // Gesture wakeup by SCP
-#endif
+#define GTP_SCP_GESTURE_WAKEUP  0   // Gesture wakeup by SCP
 
 //#define TPD_PROXIMITY
-#define TPD_HAVE_BUTTON               //report key as coordinate,Vibration feedback
+#define TPD_HAVE_BUTTON         //report key as coordinate,Vibration feedback
 //#define TPD_WARP_X
 //#define TPD_WARP_Y
 
-#define GTP_DEBUG_ON       0 //   0
-#define GTP_DEBUG_ARRAY_ON  0 //  0
-#define GTP_DEBUG_FUNC_ON     0 //0
+#define GTP_DEBUG_ON        0
+#define GTP_DEBUG_ARRAY_ON  0
+#define GTP_DEBUG_FUNC_ON   0
 
 #define CFG_GROUP_LEN(p_cfg_grp)  (sizeof(p_cfg_grp) / sizeof(p_cfg_grp[0]))
 #define FLASHLESS_FLASH_WORKROUND  0
@@ -477,7 +468,7 @@ a sample config, send this config should cause the chip cannot work normally*/
 #endif
 #define GTP_MAX_TOUCH      5
 #define GTP_ESD_CHECK_CIRCLE  2000
-#define TPD_POWER_SOURCE_CUSTOM	PMIC_APP_CAP_TOUCH_VDD
+#define TPD_POWER_SOURCE_CUSTOM PMIC_APP_CAP_TOUCH_VDD
 
 #define VELOCITY_CUSTOM
 #define TPD_VELOCITY_CUSTOM_X 15
@@ -485,7 +476,7 @@ a sample config, send this config should cause the chip cannot work normally*/
 
 //STEP_4(optional):If this project have touch key,Set touch key config.
 #if GTP_HAVE_TOUCH_KEY
-#define GTP_KEY_TAB	 {KEY_MENU, KEY_HOME, KEY_BACK, KEY_SEND}
+#define GTP_KEY_TAB  {KEY_MENU, KEY_HOME, KEY_BACK, KEY_SEND}
 #endif
 
 //***************************PART3:OTHER define*********************************
@@ -559,7 +550,7 @@ typedef enum
 #define GTP_REG_CONFIG_DATA         0x8047
 #define GTP_REG_VERSION             0x8140
 #define GTP_REG_HW_INFO             0x4220
-#define GTP_REG_REFRESH_RATE		0x8056
+#define GTP_REG_REFRESH_RATE        0x8056
 
 #define RESOLUTION_LOC              3
 #define TRIGGER_LOC                 8
@@ -568,7 +559,7 @@ typedef enum
 #define GTP_DMA_MAX_TRANSACTION_LENGTH  255   // for DMA mode
 #define GTP_DMA_MAX_I2C_TRANSFER_SIZE   (GTP_DMA_MAX_TRANSACTION_LENGTH - GTP_ADDR_LENGTH)
 #define MAX_TRANSACTION_LENGTH        8
-#define TPD_I2C_NUMBER				I2C_CAP_TOUCH_CHANNEL
+#define TPD_I2C_NUMBER              I2C_CAP_TOUCH_CHANNEL
 #define I2C_MASTER_CLOCK              300
 #define MAX_I2C_TRANSFER_SIZE         (MAX_TRANSACTION_LENGTH - GTP_ADDR_LENGTH)
 #define TPD_MAX_RESET_COUNT           3
@@ -629,14 +620,14 @@ typedef enum
                                        }while (0)
 
 //****************************PART4:UPDATE define*******************************
-//Error no
-#define ERROR_NO_FILE           2   //ENOENT
-#define ERROR_FILE_READ         23  //ENFILE
-#define ERROR_FILE_TYPE         21  //EISDIR
-#define ERROR_GPIO_REQUEST      4   //EINTR
-#define ERROR_I2C_TRANSFER      5   //EIO
-#define ERROR_NO_RESPONSE       16  //EBUSY
-#define ERROR_TIMEOUT           110 //ETIMEDOUT
+//Error no.
+#define ERROR_NO_FILE       2   //ENOENT
+#define ERROR_FILE_READ     23  //ENFILE
+#define ERROR_FILE_TYPE     21  //EISDIR
+#define ERROR_GPIO_REQUEST  4   //EINTR
+#define ERROR_I2C_TRANSFER  5   //EIO
+#define ERROR_NO_RESPONSE   16  //EBUSY
+#define ERROR_TIMEOUT       110 //ETIMEDOUT
 
 //*****************************End of Part III********************************
 

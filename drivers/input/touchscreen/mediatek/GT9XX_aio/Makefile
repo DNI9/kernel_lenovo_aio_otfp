@@ -9,4 +9,8 @@ ccflags-y += -I$(srctree)/drivers/input/touchscreen/mediatek/
 obj-y	+=  goodix_tool.o
 obj-y	+=  gt9xx_driver.o
 obj-y	+=  gt9xx_update.o
+obj-y	+=  touchscreen.o
+obj-$(CONFIG_TOUCHSCREEN_SMARTWAKE)		+= smartwake.o
+obj-$(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)		+= doubletap2wake.o
+
 

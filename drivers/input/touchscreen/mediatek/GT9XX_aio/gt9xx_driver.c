@@ -2387,6 +2387,19 @@ static int tpd_registration(void *client)
               input_set_capability(tpd->dev, EV_KEY, KEY_SLIDE);
 #endif
 		
+
+    set_bit(EV_KEY, tpd->dev->evbit);
+    set_bit(KEY_WAKEUP, tpd->dev->keybit);
+    set_bit(KEY_GESTURE_SLIDE_DOWN, tpd->dev->keybit);
+    set_bit(KEY_GESTURE_SLIDE_LEFT, tpd->dev->keybit);
+    set_bit(KEY_GESTURE_SLIDE_RIGHT, tpd->dev->keybit);
+    set_bit(KEY_GESTURE_SLIDE_C, tpd->dev->keybit);
+    set_bit(KEY_GESTURE_SLIDE_O, tpd->dev->keybit);
+    set_bit(KEY_GESTURE_SLIDE_UP, tpd->dev->keybit);
+    set_bit(KEY_GESTURE_SLIDE_E, tpd->dev->keybit);
+    set_bit(KEY_GESTURE_SLIDE_M, tpd->dev->keybit);
+    set_bit(KEY_GESTURE_SLIDE_W, tpd->dev->keybit);
+
 #if GTP_WITH_PEN
 		// pen support
 		__set_bit(BTN_TOOL_PEN, tpd->dev->keybit);

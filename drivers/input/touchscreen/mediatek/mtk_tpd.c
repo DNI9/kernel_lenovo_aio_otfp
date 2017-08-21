@@ -30,8 +30,8 @@
 #include <linux/fb.h>
 
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
-#ifdef CONFIG_TOUCHSCREEN_SWEEP2WAKE
-#include <linux/input/sweep2wake.h>
+#ifdef CONFIG_TOUCHSCREEN_SMARTWAKE
+#include <linux/input/smartwake.h>
 #endif
 #ifdef CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE
 #include <linux/input/doubletap2wake.h>
@@ -517,7 +517,7 @@ static void tpd_create_attributes(struct device *dev, struct tpd_attrs *attrs)
 #ifdef CONFIG_TOUCHSCREEN_PREVENT_SLEEP
 
 static void eros_suspend(struct early_suspend *h) {
-#if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE) || defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
+#if defined(CONFIG_TOUCHSCREEN_SMARTWAKE) || defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
 	bool prevent_sleep = false;
 #endif
 	/*
@@ -527,10 +527,10 @@ static void eros_suspend(struct early_suspend *h) {
 	 * If it doesn't, well, that breaks things.
 	 *
 	 */
-#if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
-	prevent_sleep = (s2w_switch > 0) && (s2w_s2sonly == 0);
+#if defined(CONFIG_TOUCHSCREEN_SMARTWAKE)
+	prevent_sleep = (smartwake_switch > 0);
 	prevent_sleep = (prevent_sleep && !in_phone_call);
-	s2w_scr_suspended = true;
+	smartwake_scr_suspended = true;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
 	//prevent_sleep = prevent_sleep || (dt2w_switch > 0);
@@ -547,13 +547,13 @@ static void eros_suspend(struct early_suspend *h) {
 }
 
 static void eros_resume(struct early_suspend *h) {
-#if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE) || defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
+#if defined(CONFIG_TOUCHSCREEN_SMARTWAKE) || defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
 	bool prevent_sleep = false;
 #endif
-#if defined(CONFIG_TOUCHSCREEN_SWEEP2WAKE)
-	prevent_sleep = (s2w_switch > 0) && (s2w_s2sonly == 0);
+#if defined(CONFIG_TOUCHSCREEN_SMARTWAKE)
+	prevent_sleep = (smartwake_switch > 0);
 	prevent_sleep = (prevent_sleep && !in_phone_call);
-	s2w_scr_suspended = false;
+	smartwake_scr_suspended = false;
 #endif
 #if defined(CONFIG_TOUCHSCREEN_DOUBLETAP2WAKE)
 	//prevent_sleep = prevent_sleep || (dt2w_switch > 0);
