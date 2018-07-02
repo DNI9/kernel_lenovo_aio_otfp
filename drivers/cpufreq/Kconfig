@@ -154,9 +154,9 @@ config CPU_FREQ_DEFAULT_GOV_PEGASUSQ
         help
           Use the CPUFreq governor 'pegasusq' as default
 
-config CPU_FREQ_DEFAULT_GOV_ALUCARD
-	bool "alucard"
-	select CPU_FREQ_GOV_ALUCARD
+config CPU_FREQ_DEFAULT_GOV_BLITZ
+	bool "blitz"
+	select CPU_FREQ_GOV_BLITZ
 	help
 
 config CPU_FREQ_DEFAULT_GOV_RENICE
@@ -328,8 +328,8 @@ config CPU_FREQ_GOV_HOTPLUG
 
 	  If in doubt, say N.
 
-config CPU_FREQ_GOV_ALUCARD
-	tristate "'alucard' cpufreq governor"
+config CPU_FREQ_GOV_BLITZ
+	tristate "'blitz' cpufreq governor"
 	depends on CPU_FREQ
 	help
           For details, take a look at linux/Documentation/cpu-freq.
